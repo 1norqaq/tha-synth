@@ -44,8 +44,8 @@ Three regimes are reported by default:
 
 | Regime    | Description                              | γ   | σ    |
 |-----------|------------------------------------------|-----|------|
-| Realistic | model retains 30% of historical bias     | 0.3 | 1.0  |
-| Debiased  | model fully removes historical bias      | 0.0 | 1.0  |
+| Realistic | model retains 30% of historical bias     | 0.3 | 1.2  |
+| Debiased  | model fully removes historical bias      | 0.0 | 1.2  |
 | Random    | model is pure noise (no qualification info) | n/a | 10.0 |
 
 Across all three regimes, the inflation ordering
