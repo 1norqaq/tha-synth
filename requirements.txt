@@ -1,0 +1,136 @@
+# THA-Synth
+
+Reference implementation of the **Threshold-Honest Audit (THA)** protocol's
+synthetic benchmark, accompanying the NeurIPS 2026 Evaluations & Datasets Track
+submission *"Threshold-Honest Auditing of Production Hiring Models"*.
+
+THA-Synth is a self-contained synthetic generator that produces candidate-job
+pairs with controllable ground-truth disparity and runs the operating-point
+checks used in Threshold-Honest Audit:
+
+| Component | Description | Implementation |
+|---|---|---|
+| R1 | matched-rate paired cluster bootstrap | `fast_paired_delta`, `run_audit` |
+| R2 | matched threshold, per-requisition top-k, `pred > 0.5` | `run_audit`, `run_table8` |
+| R3 | two-way intersectional cell DI | `intersectional_cell_di` |
+| R4 | null-model sanity check | `null_model_audit` |
+| R5 | demographic-inference noise sensitivity | `noise_sensitivity_sweep` |
+
+## Scope note
+
+The production case study in the paper uses a richer audit pipeline, including
+multiple protected attributes and a three-layer DI aggregation over requisitions
+and occupational categories. THA-Synth intentionally uses a **simplified binary
+protected attribute and pooled DI** so that evaluation-protocol artefacts can be
+stress-tested in a lightweight, fully releasable setting. It reproduces the
+operating-point logic and paired cluster-bootstrap structure, not any specific
+employer's data distribution.
+
+## Installation
+
+Requires Python 3.9+.
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Dependencies are only `numpy` and `pandas`.
+
+## Quick start
+
+Fast artifact smoke run covering R1-R5:
+
+```bash
+python quickstart.py
+```
+
+Equivalent CLI entry point:
+
+```bash
+python synthetic_benchmark.py
+```
+
+On a standard CPU this should finish in well under 30 seconds.
+
+## Reproduce the Table-8-style synthetic benchmark
+
+Quick B=20 check:
+
+```bash
+python reproduce_table8.py --quick --out expected_outputs/table8_seed0_B20.csv
+```
+
+Full B=500 run used for the saved artifact output:
+
+```bash
+python reproduce_table8.py --B 500 --out expected_outputs/table8_seed0_B500.csv
+```
+
+The repository includes `expected_outputs/table8_seed0_B500.csv` and
+`synthetic_results.pkl` generated from the full B=500 command with seed 0.
+
+## Test
+
+```bash
+python tests/test_smoke.py
+```
+
+The smoke test generates a small synthetic dataset, checks top-k selection,
+runs a small paired bootstrap, and confirms the three regimes are produced.
+
+## Regimes
+
+| Regime | Description | Configuration |
+|---|---|---|
+| Realistic | model retains 30% of historical bias | `model_mode="signal"`, `model_bias_residual=0.30` |
+| Debiased | model fully removes historical bias | `model_mode="signal"`, `model_bias_residual=0.00` |
+| Random | model is strict independent noise | `model_mode="random"` |
+
+In the **Random** regime, `pred` is drawn independently from `U[0,1]` and is not
+based on qualification, group, history, or residual bias. This makes the null
+claim explicit: any apparent fairness improvement under this regime is an
+evaluation-protocol artefact.
+
+## Bootstrap implementation note
+
+The paired bootstrap resamples requisitions. Requisitions sampled multiple times
+are represented by cluster weights. For per-requisition top-k, weighting the
+same selected rows is equivalent to creating separate bootstrap copies and
+selecting top-k within each copy; this avoids incorrectly merging duplicate
+bootstrap copies under the same original `job_id`.
+
+## Files
+
+| File / directory | Description |
+|---|---|
+| `synthetic_benchmark.py` | Generator, audit metrics, fast paired bootstrap, CLI |
+| `quickstart.py` | Fast R1-R5 smoke demo |
+| `reproduce_table8.py` | Reproduction entry point for Table-8-style results |
+| `tests/test_smoke.py` | Minimal smoke test |
+| `expected_outputs/` | Expected B=500 CSV output |
+| `synthetic_results.pkl` | Saved B=500 pandas DataFrame output |
+| `ARTIFACT.md` | Artifact review notes and commands |
+| `requirements.txt` | Python dependencies |
+| `LICENSE` | MIT license |
+
+## Intended use
+
+Researchers proposing new fairness-audit metrics or reporting protocols can use
+THA-Synth to:
+
+1. check whether a metric inflates under the Random regime;
+2. check whether a metric distinguishes Realistic from Debiased;
+3. sweep generator parameters such as qualification advantage, historical bias,
+   residual model bias, and model noise.
+
+## Limitations
+
+THA-Synth is not a model of any specific employer's hiring data. It does not
+reproduce missingness patterns in protected-attribute inference,
+requisition-specific recruiter heterogeneity, correlated recruiter clusters, or
+non-Poisson cluster-size distributions. It is a complement to production case
+studies, not a substitute.
+
+## License
+
+Released under the MIT license.
