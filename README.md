@@ -7,10 +7,19 @@ Track submission *"Threshold-Honest Auditing of Production Hiring Models"*
 
 THA-Synth is a self-contained synthetic generator that produces
 candidate–job pairs with **controllable ground-truth disparity** and
-runs the same matched-rate, per-requisition top-*k*, and `pred > 0.5`
-paired-bootstrap audits described in the paper. It is intended as a
-**reusable test bed** for evaluation-protocol research, sitting in the
-same artifact family as recent NeurIPS D&B fairness benchmarks
+implements all five Threshold-Honest Audit components (R1–R5)
+described in the paper:
+
+| Component | Description                                              | Function                       |
+|-----------|----------------------------------------------------------|--------------------------------|
+| R1        | Matched-rate paired cluster-bootstrap                    | `paired_bootstrap_di_delta`    |
+| R2        | Threshold sweep + per-requisition top-*k*                | `run_audit`                    |
+| R3        | Two-way intersectional cell DI (group × age band)        | `intersectional_cell_di`       |
+| R4        | Null-model sanity check (uniform & shuffled-pred)        | `null_model_audit`             |
+| R5        | Demographic-inference noise sensitivity sweep            | `noise_sensitivity_sweep`      |
+
+It is intended as a **reusable test bed** for evaluation-protocol research,
+sitting in the same artifact family as recent NeurIPS D&B fairness benchmarks
 (BAF 2022, FairJob 2024) but with a different target: stress-testing of
 audit protocols rather than mitigation algorithms.
 
@@ -24,8 +33,10 @@ python3 synthetic_benchmark.py
 ```
 
 CPU-only. Reproduces Table 8 of the paper (Realistic / Debiased / Random
-regimes, B = 500 paired cluster-bootstrap resamples) in under one minute
-on a standard laptop.
+regimes, B = 500 paired cluster-bootstrap resamples) under one minute on a
+standard laptop. The same script also demonstrates R3 (intersectional cell
+DI), R4 (null-model sanity check at `pred > 0.5`), and R5 (η-sweep over
+label-flip noise on the protected attribute).
 
 ## What the script does
 
