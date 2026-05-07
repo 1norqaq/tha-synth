@@ -8,13 +8,19 @@ THA-Synth is a self-contained synthetic generator that produces candidate-job
 pairs with controllable ground-truth disparity and runs the operating-point
 checks used in Threshold-Honest Audit:
 
-| Component | Description | Implementation |
+## Components
+
+The full THA protocol in the paper has five reporting components. THA-Synth
+implements lightweight versions of these components for a simplified synthetic
+setting.
+
+| THA Component | Description | Implementation |
 |---|---|---|
-| R1 | matched-rate paired cluster bootstrap | `fast_paired_delta`, `run_audit` |
-| R2 | matched threshold, per-requisition top-k, `pred > 0.5` | `run_audit`, `run_table8` |
-| R3 | two-way intersectional cell DI | `intersectional_cell_di` |
-| R4 | null-model sanity check | `null_model_audit` |
-| R5 | demographic-inference noise sensitivity | `noise_sensitivity_sweep` |
+| R1 | Null-model sanity check | `null_model_audit` |
+| R2 | Matched-rate paired cluster bootstrap | `fast_paired_delta`, `run_audit` |
+| R3 | Threshold sweep and per-requisition top-k checks | `run_audit`, `run_table8` |
+| R4 | Two-way intersectional cell DI | `intersectional_cell_di` |
+| R5 | Demographic-inference noise sensitivity | `noise_sensitivity_sweep` |
 
 ## Scope note
 
